@@ -1,0 +1,22 @@
+{
+  "name": "structure",
+  "version": "0.0.1",
+  "description": "stores information gathered from the webpage structure extension",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nhahn/structify"
+  },
+  "dependencies": {
+    "geddy": "0.12.x"
+  },
+  "author": "Nathan Hahn",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/nhahn/structify/issues"
+  }
+  "engine": "node >= 0.10.1"
+}
