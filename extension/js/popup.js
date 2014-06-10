@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
       file: "/js/jquery-2.1.1.min.js"
     }, function() {
       //This is executed after jquery is completely loaded
-      chrome.tab.executeScript(currentTab.id, {
+      chrome.tabs.executeScript(currentTab.id, {
         file: "/js/parseDocument.js"
       });
     });
