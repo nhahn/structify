@@ -1,0 +1,12 @@
+<div class="control-group">
+  <label for="title" class="control-label">title</label>
+  <div class="controls">
+    <%- contentTag('input', node.title, {type:'text', class:'span6', name:'title'}) %>
+  </div>
+</div>
+<div class="control-group">
+  <label for="content" class="control-label">content</label>
+  <div class="controls">
+    <%- contentTag('textarea', node.content, {class: 'span6', name: 'content', rows: 10}) %>
+  </div>
+</div>

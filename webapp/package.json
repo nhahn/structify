@@ -11,12 +11,13 @@
     "url": "https://github.com/nhahn/structify"
   },
   "dependencies": {
-    "geddy": "0.12.x"
+    "geddy": "0.12.x",
+    "pg": "3.3.x"
   },
   "author": "Nathan Hahn",
   "license": "BSD-2-Clause",
   "bugs": {
     "url": "https://github.com/nhahn/structify/issues"
-  }
+  },
   "engine": "node >= 0.10.1"
 }

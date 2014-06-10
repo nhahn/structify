@@ -23,8 +23,17 @@ var config = {
 , hostname: null
 , port: 4000
 , model: {
-    defaultAdapter: 'filesystem'
+    defaultAdapter: 'postgres'
   }
+, db: {
+  postgres: {
+    port: 5432
+  , password: ''
+  , database: 'structify_dev'
+  , host: 'localhost'
+  , user: 'nhahn'
+  }
+}
 , sessions: {
     store: 'filesystem'
   , filename: '_session_store.json'
