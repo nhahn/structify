@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="/js/handlebars.js"></script>
+    <script>
+      //Use a better conditional helper for handlebars
+      Handlebars.registerHelper('ifCond', function (v1, operator, v2, options) {
+        switch (operator) {
+          case '==':
+            return (v1 == v2) ? options.fn(this) : options.inverse(this);
+          case '===':
+            return (v1 === v2) ? options.fn(this) : options.inverse(this);
+          case '<':
+            return (v1 < v2) ? options.fn(this) : options.inverse(this);
+          case '<=':
+            return (v1 <= v2) ? options.fn(this) : options.inverse(this);
+          case '>':
+            return (v1 > v2) ? options.fn(this) : options.inverse(this);
+          case '>=':
+            return (v1 >= v2) ? options.fn(this) : options.inverse(this);
+          case '&&':
+            return (v1 && v2) ? options.fn(this) : options.inverse(this);
+          case '||':
+            return (v1 || v2) ? options.fn(this) : options.inverse(this);
+          default:
+              return options.inverse(this);
+          }
+      });
+
+      window.addEventListener('message', function(event) {
+        var command = event.data.command;
+        var id = event.data.id;
+        var template = Handlebars.compile(event.data.template)
+
+        switch (command) {
+          case 'render':
+            event.source.postMessage({
+              name: name,
+              html: template(event.data.context),
+              id: id
+            }, event.origin);
+            break;
+        }
+      });
+
+    </script>
+  </head>
+  <body>
+  </body>
+</html>

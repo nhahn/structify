@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var currentTab = tabs[0];
     var req = new XMLHttpRequest();
     var uri = "https://www.readability.com/api/content/v1/parser?url=";
-    uri += currentTab.url;
+    uri += encodeURIComponent(currentTab.url);
     uri += "&token="+readabilityToken;
     req.open("GET",uri,true);
     req.onload = function () {
@@ -24,12 +24,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     //Show the searches we have been performing
     chrome.storage.local.get("queries", function (data) {
-      $.each(data.queries, function(idx,obj) {
-        $('#queries').append('<li>'+obj.query+'</li>');
+      var queries = data.queries;
+      getTemplate("searches.hbs",{queries: queries, currentTab: currentTab.id},function(html) {
+        $('body').html(html);
       });
-      if(data.queries.hasOwnProperty(currentTab.id)){
-
-      }
     });
 
     //Execute the content scripts to hightlight the pre-defined places on the page
@@ -61,3 +59,10 @@ function createSearch(tabId, query, callback) {
   };
   req.send(JSON.stringify({query: query}));
 }
+
+function getTemplate(template, context, callback) {
+  chrome.runtime.getBackgroundPage( function(page) {
+    page.renderTemplate(template,context,callback);
+  });
+}
+

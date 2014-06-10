@@ -1,0 +1,9 @@
+<ul id="queries">
+  {{#each queries}}
+    {{#ifCond this.tabId '==' ../currentTab}}
+      <li data-queryId="{{this.queryId}}" class="selected">{{this.query}}</li>
+    {{else}}
+      <li data-queryId="{{this.queryId}}">{{this.query}}</li>
+    {{/ifCond}}
+  {{/each}}
+</ul>

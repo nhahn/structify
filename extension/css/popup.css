@@ -1,0 +1,36 @@
+ul#queries li {
+  list-style-type: none;
+  margin-bottom: 10px;
+  background-color: white;
+  padding: 10px 0px 10px 10px;
+  box-shadow: 1px 1px 2px grey;
+  border-radius: 5px;
+}
+
+ul#queries li.selected {
+ box-shadow: none;
+ border: 1px solid rgb(230, 230, 230);
+ padding-bottom: 8px;
+}
+
+ul#queries li:hover {
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+#queries {
+  font-family: sans-serif;
+  font-weight: 200;
+  font-size: .9em;
+  padding-left: 0px;
+}
+
+body {
+  background: url('/img/whitey.png');
+}
+
+html, body {
+  min-width: 300px;
+  max-height: 400px;
+  overflow: auto;
+}
