@@ -5,90 +5,106 @@ var readabilityToken = "f4e78786f91cc233df5c7ace656a6e63f6411217";
 var save_notification = "structify-save-page";
 
 document.addEventListener('DOMContentLoaded', function () {
-
   //Grab the readability version of the current tab
   chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
     var currentTab = tabs[0];
     //Show the searches we have been performing
-    chrome.storage.local.get(['queries','tab','query'], function (data) {
+    chrome.storage.local.get(['queries','tab','query', 'notification'], function (data) {
       var queries = data.queries;
       var prevTab = data.tab;
 
       //First, check if we are currently saving data for this tab
-      if ( prevTab != null && prevTab.id == currentTab.id)
-      {
-        getTemplate("savePage.hbs",{}, function(html) {
-          $('body').html(html);
-        });
-        return;
-      } else if (prevTab != null) {
-        //Reset the previous tab and stop the page saving
-        chrome.notifications.clear(sessionStorage.getItem("notification").notification,
-                                   function() {});
-        chrome.tabs.sendMessage(prevTab, {command: 'stop'}, function(){});
-        chrome.storage.local.set({"tab": null});
-        chrome.stroage.local.set({"query": null});
+      switch (checkState(prevTab, currentTab)){
+        case 'showSearches':
+          showSearches(queries, currentTab);
+          break;
+        case 'showSave':
+          showSave();
+          break;
       }
-
-      getTemplate("searches.hbs",{queries: queries, currentTab: currentTab.id},
-        function(html) {
-          $('body').html(html);
-          $('#queries li').click(function(e) {
-            var prevElem = $(this).parent().find('.selected')
-            prevElem.removeClass('selected');
-            prevElem.text(prevElem.find('div').text());
-            $(this).html('<span class="glyphicon glyphicon-ok"></span><div>'+$(this).text()+'</div>');
-            $(this).addClass('selected');
-          });
-          $('#nextStep').click(function(e) {
-            chrome.storage.local.set({"tab": currentTab});
-            chrome.storage.local.set({"query": queries[$('#queries')
-                                               .find('.selected').index('li')]});
-            var notification = {
-              type: "basic",
-              title: "Saving Page",
-              message: "Select the content section headers",
-              iconUrl: "/img/structify_medium.png",
-              priority: 2,
-              buttons: [{"title": "Stop"}]
-            };
-            getTemplate("savePage.hbs",{}, function(html) {
-              $('body').html(html);
-            });
-            //Execute the content scripts to hightlight the pre-defined places on the page
-            chrome.tabs.executeScript(currentTab.id, {
-              file: "/js/jquery-2.1.1.min.js"
-            }, function() {
-              //This is executed after jquery is completely loaded
-              chrome.tabs.executeScript(currentTab.id, {
-                file: "/js/parseDocument.js"
-              });
-            });
-            chrome.storage.local.set({"notification": save_notification});
-            chrome.notifications.create(save_notification, notification,
-              function (notification) {
-              });
-          });
-        });
     });
   });
 });
 
-function createSearch(tabId, query, callback) {
-  var req = new XMLHttpRequest();
-  req.open("POST", "http://localhost:4000/searches.json", true);
-  //req.onload = this.showPhotos_.bind(this);
-  req.setRequestHeader("Content-type", "application/json");
-  req.onload = function () {
-    var json = JSON.parse(this.responseText);
-    chrome.storage.local.get("queries", function (q) {
-      q.queries = q.queries || [];
-      q.queries[tabId]["queryId"] = json.id;
-      chrome.storage.local.set({"queries": q.queries});
+function checkState(prevTab, currentTab) {
+  if ( prevTab != null && prevTab.id == currentTab.id) {
+    return 'showSave';
+  } else if (prevTab != null) {
+    clearState(prevTab, currentTab);
+  }
+  return 'showSearches';
+}
+
+function showSave() {
+  getTemplate("savePage.hbs",{}, function(html) {
+    $('body').html(html);
+  });
+}
+
+function showSearchers(queries, currentTab){
+  getTemplate("searches.hbs",{queries: queries, currentTab: currentTab.id},
+    function(html) {
+      $('body').html(html);
+      var container = $('#queries');
+      var elem = container.find('.selected');
+      //If something is selected, scroll to it
+      if (elem.length) {
+        elem[0].scrollIntoView(true);
+      }
+
+      $('#queries li').click(function(e) {
+        var prevElem = $(this).parent().find('.selected')
+        prevElem.removeClass('selected');
+        prevElem.text(prevElem.find('div').text());
+        $(this).html('<span class="glyphicon glyphicon-ok"></span><div>'+$(this).text()+'</div>');
+        $(this).addClass('selected');
+      });
+      $('#nextStep').click(function(e) {
+        chrome.storage.local.set({"tab": currentTab});
+        chrome.storage.local.set({"query": queries[$('#queries')
+                                           .find('.selected').index('li')]});
+        runContent(currentTab);
+      });
     });
-    callback(json);
+}
+
+function clearState(prevTab, notification){
+  //Reset the previous tab and stop the page saving
+  chrome.notifications.clear(notification,function() {});
+  chrome.tabs.sendMessage(prevTab.id, {command: 'stop'}, function(){});
+  chrome.storage.local.set({"tab": null});
+  chrome.storage.local.set({"query": null});
+}
+
+function runContent(tab){
+  var notification = {
+  type: "basic",
+  title: "Saving Page",
+  message: "Select the content section headers",
+  iconUrl: "/img/structify_medium.png",
+  priority: 2,
+  buttons: [{"title": "Stop"}]
   };
-  req.send(JSON.stringify({query: query}));
+  //Execute the content scripts to hightlight the pre-defined places on the page
+  chrome.tabs.executeScript(tab.id, {
+    file: "/js/jquery-2.1.1.min.js"
+  }, function() {
+    chrome.tabs.executeScript(tab.id, {
+      file: "/js/state-machine.min.js"
+    }, function() {
+      chrome.tabs.executeScript(tab.id, {
+        file: "/js/parseDocument.js"
+      }, function(){
+        //Signal we are ready by showing the notification and changing the page
+        getTemplate("savePage.hbs",{}, function(html) {
+          $('body').html(html);
+        });
+        chrome.storage.local.set({"notification": save_notification});
+        chrome.notifications.create(save_notification, notification,
+          function (notification) { });
+      });
+    });
+  });
 }
 
 function getTemplate(template, context, callback) {
