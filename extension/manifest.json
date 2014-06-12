@@ -9,7 +9,8 @@
     "https://www.readability.com/*",
     "tabs",
     "storage",
-    "activeTab"
+    "activeTab",
+    "notifications"
   ],
   "background": {
     "page": "html/background.html",

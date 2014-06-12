@@ -10,7 +10,44 @@ ul#queries li {
 ul#queries li.selected {
  box-shadow: none;
  border: 1px solid rgb(230, 230, 230);
- padding-bottom: 8px;
+ padding: 0px;
+}
+
+ul#queries li.selected:hover {
+  opacity: 1;
+}
+
+ul#queries li.selected span {
+  background-color: blue;
+  padding: 12px 10px 13px 10px;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+  margin-top: -2px;
+  background-color: #428bca;
+  color: white;
+
+  -webkit-animation-name: slidein;
+  -webkit-animation-duration: 1s;
+}
+
+@-webkit-keyframes slidein {
+  from {
+    padding-left: 0px;
+    width: 0px;
+    padding-right: 0px;
+  }
+
+  to {
+    padding-right: 10px;
+    padding-left: 10px;
+    width: 33px;
+  }
+}
+
+ul#queries li.selected div {
+  display: inline-block;
+  padding-left: 5px;
+  padding-bottom: 9px;
 }
 
 ul#queries li:hover {
@@ -22,7 +59,9 @@ ul#queries li:hover {
   font-family: sans-serif;
   font-weight: 200;
   font-size: .9em;
-  padding-left: 0px;
+  padding: 10px;
+  overflow: auto;
+  max-height: 370px;
 }
 
 body {
@@ -31,6 +70,4 @@ body {
 
 html, body {
   min-width: 300px;
-  max-height: 400px;
-  overflow: auto;
 }
