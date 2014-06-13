@@ -3,9 +3,7 @@ chrome.runtime.onConnect.addListener( function(port) {
   port.onMessage.addListener(function(msg) {
     switch(msg.command) {
       case 'verify':
-        chrome.storage.local.get("notification", function(data){
-          chrome.notifications.clear(data.notification, function(){});
-        });
+        clearNotification();
         var notification = {
           type: "basic",
           title: "Verify Choices",
@@ -16,7 +14,20 @@ chrome.runtime.onConnect.addListener( function(port) {
         };
         chrome.notifications.create("structify-verify-page", notification,
           function (){});
-
+        break;
+      case 'info':
+        clearNotification();
+        var notification = {
+          type: "basic",
+          title: "More Information",
+          message: "In order to make a good guess, could you select another header?",
+          iconUrl: "/img/structify_medium.png",
+          priority: 2,
+          buttons: [{"title": "Stop"}]
+        };
+        chrome.notifications.create("structify-more-info", notification,
+          function (){});
+        break;
     }
   });
   chrome.notifications.onButtonClicked.addListener(
@@ -25,25 +36,40 @@ chrome.runtime.onConnect.addListener( function(port) {
     switch(notificationId)
     {
       case 'structify-save-page':
-        chrome.storage.local.get("tab", function (data) {
-          chrome.tabs.sendMessage(data.tab.id, {command: 'stop'}, function(){});
-        });
-        chrome.storage.local.set({"tab": null});
-        chrome.storage.local.set({"query": null});
+        stopScript();
+        break;
+      case 'structify-more-info':
+        stopScript();
         break;
       case 'structify-verify-page':
         switch(buttonIndex) {
-          case 0: //Yes
+          case 0:
+            port.postMessage({command: 'verify', response: 'yes'});
             break;
             //TODO guess the smaller headings
           case 1: //No
+            port.postMessage({command: 'verify', response: 'no'});
             break;
             //TODO redo the larger headings
         }
+        break;
     }
-
   });
 });
+
+function stopScript() {
+  chrome.storage.local.get("tab", function (data) {
+    chrome.tabs.sendMessage(data.tab.id, {command: 'stop'}, function(){});
+  });
+  chrome.storage.local.set({"tab": null});
+  chrome.storage.local.set({"query": null});
+}
+
+function clearNotification() {
+  chrome.storage.local.get("notification", function(data){
+    chrome.notifications.clear(data.notification, function(){});
+  });
+}
 
 function Page(url, title, query) {
   this.url = url;

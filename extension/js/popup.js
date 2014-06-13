@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
   chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
     var currentTab = tabs[0];
     //Show the searches we have been performing
-    chrome.storage.local.get(['queries','tab','query', 'notification'], function (data) {
+    chrome.storage.local.get(['queries','tab','query'], function (data) {
       var queries = data.queries;
       var prevTab = data.tab;
 
@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
           showSearches(queries, currentTab);
           break;
         case 'showSave':
-          showSave();
+          showSave(currentTab);
           break;
       }
     });
@@ -30,18 +30,31 @@ function checkState(prevTab, currentTab) {
   if ( prevTab != null && prevTab.id == currentTab.id) {
     return 'showSave';
   } else if (prevTab != null) {
-    clearState(prevTab, currentTab);
+    clearState(prevTab);
   }
   return 'showSearches';
 }
 
-function showSave() {
+function showSave(currentTab) {
   getTemplate("savePage.hbs",{}, function(html) {
     $('body').html(html);
+    $('#back').click(function() {
+      chrome.storage.local.get(['queries','tab'], function (data) {
+        clearState(data.tab);
+        showSearches(data.queries,currentTab);
+      });
+    });
+    $('#stop').click(function() {
+      chrome.storage.local.get(['tab'], function (data) {
+        clearState(data.tab);
+        window.close();
+      });
+    });
+
   });
 }
 
-function showSearchers(queries, currentTab){
+function showSearches(queries, currentTab){
   getTemplate("searches.hbs",{queries: queries, currentTab: currentTab.id},
     function(html) {
       $('body').html(html);
@@ -68,9 +81,11 @@ function showSearchers(queries, currentTab){
     });
 }
 
-function clearState(prevTab, notification){
+function clearState(prevTab){
   //Reset the previous tab and stop the page saving
-  chrome.notifications.clear(notification,function() {});
+  chrome.storage.local.get("notification", function(data){
+    chrome.notifications.clear(data.notification, function(){});
+  });
   chrome.tabs.sendMessage(prevTab.id, {command: 'stop'}, function(){});
   chrome.storage.local.set({"tab": null});
   chrome.storage.local.set({"query": null});
@@ -96,9 +111,7 @@ function runContent(tab){
         file: "/js/parseDocument.js"
       }, function(){
         //Signal we are ready by showing the notification and changing the page
-        getTemplate("savePage.hbs",{}, function(html) {
-          $('body').html(html);
-        });
+        showSave(tab);
         chrome.storage.local.set({"notification": save_notification});
         chrome.notifications.create(save_notification, notification,
           function (notification) { });
