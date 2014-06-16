@@ -5,6 +5,8 @@ var Node = function () {
     content: {type: 'text'}
   });
 
+
+
   /*
   this.property('login', 'string', {required: true});
   this.property('password', 'string', {required: true});
