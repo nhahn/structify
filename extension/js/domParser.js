@@ -1,8 +1,13 @@
+/*
+ * This is the message receptor from the parseDocument.js content script. This gives notifications to
+ * keep help the user keep track of where they are in the page saving process.
+ */
 chrome.runtime.onConnect.addListener( function(port) {
   console.assert(port.name == "parser");
   var page = null;
   port.onMessage.addListener(function(msg) {
     switch(msg.command) {
+      //Have a person verify their their input after we have guessed the headers
       case 'verify':
         clearNotification();
         var notification = {
@@ -15,6 +20,8 @@ chrome.runtime.onConnect.addListener( function(port) {
         };
         createNotification("structify-verify-page",notification);
         break;
+      //We couldn't automatically determine the other headers. This is where we ask for
+      //more information
       case 'info':
         clearNotification();
         var notification = {
@@ -27,6 +34,7 @@ chrome.runtime.onConnect.addListener( function(port) {
         };
         createNotification("structify-more-info",notification);
         break;
+      //If they click no on what we tried to automatically select.
       case 'redo':
         clearNotification();
         var notification = {
@@ -39,6 +47,7 @@ chrome.runtime.onConnect.addListener( function(port) {
         };
         createNotification("structify-fix-headers",notification);
         break;
+      //Ask for subheaders to be seleced so we can form a more complete graph
       case 'subheaders':
         clearNotification();
         var notification = {
@@ -51,6 +60,7 @@ chrome.runtime.onConnect.addListener( function(port) {
         };
         createNotification("structify-subheaders",notification);
         break;
+      //When we are done selecting headers, store the information in our Geddy server!
       case 'store':
         //Ok, we have some page info to process here
         var data = msg.data;
@@ -72,8 +82,11 @@ chrome.runtime.onConnect.addListener( function(port) {
         break;
     }
   });
+  //This is the notification listener function for the buttons. It takes the responses and passes
+  //them back to the content script
   chrome.notifications.onButtonClicked.addListener(
   function(notificationId, buttonIndex) {
+    //Clear the notification when we select a button
     chrome.notifications.clear(notificationId,function() {});
     switch(notificationId)
     {
@@ -111,12 +124,21 @@ chrome.runtime.onConnect.addListener( function(port) {
   });
 });
 
+/*
+ * Spawn the actual notification -- just a helper function
+ *
+ * @id The ID/name of the notification
+ * @notification The notification object/hash
+ */
 function createNotification(id,notification){
   chrome.notifications.create(id, notification, function (){
     chrome.storage.local.set({notification: id});
   });
 }
 
+/*
+ * Stop the header collection content script and clear the variables
+ */
 function stopScript() {
   chrome.storage.local.get("tab", function (data) {
     chrome.tabs.sendMessage(data.tab.id, {command: 'stop'}, function(){});
@@ -125,6 +147,9 @@ function stopScript() {
   chrome.storage.local.set({"query": null});
 }
 
+/*
+ * Clear the currently displayed notification
+ */
 function clearNotification() {
   chrome.storage.local.get("notification", function(data){
     chrome.notifications.clear(data.notification, function(){});

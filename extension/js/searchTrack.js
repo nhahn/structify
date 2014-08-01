@@ -1,3 +1,8 @@
+/*
+ * This file keeps track of the Google searches a person performs in the background. It saves them
+ * in the local storage in the "queries" variable
+ */
+
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
   if (changeInfo.url != undefined || changeInfo.url != null) {
     var matches = changeInfo.url.match(/www\.google\.com\/.*q=(.*?)($|&)/);

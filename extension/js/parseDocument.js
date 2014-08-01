@@ -47,7 +47,10 @@ var fsm = StateMachine.create({
   }
 });
 
-//Override all click events for the page currently selected
+/*
+ * Method that overrides all click events for the page currently selected. It is the
+ * function that performs the actual header capturing
+ */
 function captureHeaders(e) {
   e.stopPropagation();
   e.preventDefault();
@@ -117,15 +120,21 @@ function captureHeaders(e) {
   }
 }
 
+document.addEventListener("click", captureHeaders, true);
+
+/*
+ * Store the data we captured from the content script to the background page
+ */
 function storeData() {
-  //send the data we've colleced to the background script
   var ret = [];
+  //Create a nice serialized array
   $.each(headers, function(idx) {
     var parent = { name: $(this.parent)[0].nodeName.toLowerCase(),
                    content: $(this.parent).text(),
                    classes: $(this.parent)[0].className.split(' ')
                  };
     var children = [];
+    //We only do one round of parent + children (not a lot of nesting yet)
     $.each(this.children, function(idx) {
       children.push({name: this.nodeName.toLowerCase(), classes: this.className.split(' '), content: $(this).text()});
     });
@@ -135,6 +144,9 @@ function storeData() {
   port.postMessage({command: 'store', data: ret});
 }
 
+/*
+ * Helper function to generate a unique ID
+ */
 function guid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
@@ -142,6 +154,11 @@ function guid() {
   });
 }
 
+/*
+ * Find the common parents in an array of DOM nodes
+ *
+ * @nodes array of nodes we want to find a common parent for
+ */
 function commonParents(nodes) {
   if (!(nodes instanceof Array) || nodes.length < 1){
     return [];
@@ -156,9 +173,10 @@ function commonParents(nodes) {
   }
 }
 
-document.addEventListener("click", captureHeaders, true);
 
-//Specific messages from the port -- aka contact with the background page
+/*
+ * Responses from the background page (the responses to notifications mostly)
+ */
 port.onMessage.addListener(function(msg) {
   switch (msg.command) {
     case 'verify':
@@ -179,7 +197,10 @@ port.onMessage.addListener(function(msg) {
   }
 });
 
-//General Messages from the extension
+/*
+ * General Messages from the extension -- currently used only to stop the collection
+ * if we switch to a new page
+ */
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
     switch(request.command) {
